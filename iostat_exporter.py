@@ -75,6 +75,6 @@ if __name__ == '__main__':
             for (colname, gauge, divisor) in gauges:
                 val = float(row[colname])
                 val = val / divisor
-                gauge.labels([row['device']]).set(val)
+                gauge.labels(row['device']).set(val)
 
         time.sleep(args.interval)
