@@ -29,10 +29,10 @@ bytes_written = Gauge('iostat_device_bytes_written', '', ['device'])
 bytes_read = Gauge('iostat_device_bytes_read', '', ['device'])
 
 gauges = (
-        # col name, gauge above, divisor
+        # col name, gauge above, multiplier
         ("r/i", read_ops,       1),
         ("w/i", write_ops,      1),
-        ("kr/i", bytes_read,    1024),   
+        ("kr/i", bytes_read,    1024),
         ("kw/i", bytes_written, 1024),
 )
 
@@ -72,9 +72,9 @@ if __name__ == '__main__':
         for row in rows:
             if args.debug:
                 print(row)
-            for (colname, gauge, divisor) in gauges:
+            for (colname, gauge, multiplier) in gauges:
                 val = float(row[colname])
-                val = val / divisor
+                val = val * multiplier 
                 gauge.labels(row['device']).set(val)
 
         time.sleep(args.interval)
