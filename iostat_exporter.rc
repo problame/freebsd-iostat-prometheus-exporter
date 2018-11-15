@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# PROVIDE: iostat_exporter
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+. /etc/rc.subr
+
+name=iostat_exporter
+rcvar=iostat_exporter_enable
+
+git_checkout_dir=/opt/freebsd-iostat-prometheus-exporter
+
+load_rc_config $name
+
+: ${iostat_exporter_enable:="NO"}
+: ${iostat_exporter_user:="nobody"}
+: ${iostat_exporter_group:="nobody"}
+: ${iostat_exporter_args:="--port 9023 --addr 127.0.0.1 --device-filter-regex ^\(?!pass\).\*"}
+
+pidfile=/var/run/iostat_exporter.pid
+command="/usr/sbin/daemon"
+procname="/usr/local/bin/python3.6"
+command_args="-p ${pidfile} ${procname} $git_checkout_dir/iostat_exporter.py ${iostat_exporter_args}"
+
+start_precmd="${name}_prestart"
+
+iostat_exporter_prestart() {
+    install -m 0600 -o "$iostat_exporter_user" -g "$iostat_exporter_group" /dev/null "$pidfile"
+}
+
+load_rc_config $name
+run_rc_command "$1"
