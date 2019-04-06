@@ -27,13 +27,17 @@ read_ops = Gauge('iostat_device_reads', '', ['device'])
 write_ops = Gauge('iostat_device_writes', '', ['device'])
 bytes_written = Gauge('iostat_device_bytes_written', '', ['device'])
 bytes_read = Gauge('iostat_device_bytes_read', '', ['device'])
+qlen = Gauge('iostat_device_qlen', '', ['device'])
+tsvc_t = Gauge('iostat_device_tsvc_t', '', ['device'])
 
 gauges = (
-        # col name, gauge above, multiplier
-        ("r/i", read_ops,       1),
-        ("w/i", write_ops,      1),
-        ("kr/i", bytes_read,    1024),
-        ("kw/i", bytes_written, 1024),
+        # col name, gauge above, multiplier, divide_by_interval
+        ("r/i",      read_ops,       1,    True),
+        ("w/i",      write_ops,      1,    True),
+        ("kr/i",     bytes_read,     1024, True),
+        ("kw/i",     bytes_written,  1024, True),
+        ("qlen",     qlen,           1,    False),
+        ("tsvc_t/i", tsvc_t,         1,    True),
 )
 
 if __name__ == '__main__':
@@ -72,9 +76,11 @@ if __name__ == '__main__':
         for row in rows:
             if args.debug:
                 print(row)
-            for (colname, gauge, multiplier) in gauges:
+            for (colname, gauge, multiplier, divide_by_interval) in gauges:
                 val = float(row[colname])
-                val = val * multiplier 
+                val = val * multiplier
+                if divide_by_interval:
+                    val = val / args.interval
                 gauge.labels(row['device']).set(val)
 
         time.sleep(args.interval)
